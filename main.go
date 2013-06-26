@@ -8,15 +8,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"text/template"
 )
 
 var (
 	options = struct {
-		Docker   string        `goptions:"-H, --docker, description='Address of docker daemon'"`
-		Template *os.File      `goptions:"-t, --template, description='Template to render', rdonly"`
-		Output   string        `goptions:"-o, --output, description='File to render to'"`
-		Help     goptions.Help `goptions:"-h, --help, description='Show this help'"`
+		Docker     string        `goptions:"-H, --docker, description='Address of docker daemon'"`
+		Template   *os.File      `goptions:"-t, --template, description='Template to render', rdonly"`
+		Output     string        `goptions:"-o, --output, description='File to render to'"`
+		DontReload bool          `goptions:"--dont-reload, description='Dont make nginx reload its configuration'"`
+		Help       goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	}{
 		Docker: "localhost:4243",
 		Output: "/etc/nginx/conf.d/docker.conf",
@@ -52,6 +54,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not render template: %s", err)
 	}
+
+	if !options.DontReload {
+		err := exec.Command("nginx", "-s", "reload").Run()
+		if err != nil {
+			log.Fatalf("Could not make nginx reload its configuration: %s", err)
+		}
+	}
+
 }
 
 func allContainers(addr string) ([]docker.Container, error) {
