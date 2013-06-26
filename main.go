@@ -12,6 +12,10 @@ import (
 	"text/template"
 )
 
+const (
+	VERSION = "1.0.0"
+)
+
 var (
 	options = struct {
 		Docker     string        `goptions:"-H, --docker, description='Address of docker daemon'"`
